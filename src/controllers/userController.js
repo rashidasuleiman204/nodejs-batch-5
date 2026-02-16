@@ -15,67 +15,154 @@ export const getGoals = (req, res) => {
 }
 
 export const postUser = async (req, res) => {
-     const {username, email, password } = req.body;
-     try{
-          if(email !== "" && password !== ""){
-               const { error } = userValidation.validate({ 
+     const { username, email, password } = req.body
+     try {
+          if (email !== "" && password !== "") {
+               const {error} = userValidation.validate({
                     username,
                     email,
                     password
-               });
-               if(error){
+               })
+
+               if(error) {
                     return res.status(400).json({
                          message: error.details[0].message
-                    });
-               } 
-          }    
+                    })
+               }
 
-               const  existingUser = await userModel.findOne({email})
+               const existingUser = await userModel.findOne({email})
 
                if(existingUser) {
-                    return res.status(400).jason({
-                    message: `User with email ${email}
-                    already exists, please login instead or creat a new account`
+                    return res.status(400).json({
+                         message: `User with email ${email} already exists, please login instead or create a new account`
                     })
+               }
+
                const newUser = await userModel.create({
                     username,
                     email,
                     password
-               });
+               })
 
-               const token = await
-               generateToken(newUser._id)
+               const token = await generateToken(newUser._id)
 
-               res.cookie('token', token,
-                   { httpOnly: true,
-                    secure: process.env.
-                    NODE_ENV === "production",
-                    strict: "lax",
-                    maxAge: 1000 * 60 * 60 * 24 * 7}
-               )
-               res.status(201).json({
+               res.cookie('genToken', token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "lax",
+                    maxAge: 1000 * 60 * 60 * 24 * 7
+               })
+               return res.status(201).json({
                     message: "User created successfully",
-                    data : newUser
-               });
-     
-             
+                    data: newUser
+               })
           }
-        res.status(400).json({
-                    message: "provide email and password",
-                    
-               });   
-     }catch(err){
-          console.error(err);
-     //  if (email !== "" && password !== "") {
-     //      res.send("Details Submitted Successfully!");
-     //  } else {
-     //      res.send("Email and Password are required!");
-    }    //  }
+
+          res.status(400).json({
+               message: "Provide email and password"
+          })
+     } catch (err) {
+          console.error(err)
+     }
 }
- 
 
 
 export const Login = async (req, res) => {
-     const {email, passsword} = req.body
+     const {email, password} = req.body
+     try {
+          const {error} = userValidationForLogin.validate({
+               email,
+               password
+          })
+
+          if(error) {
+               return res.status(400).json({
+                    message: error.details[0].message
+               })
+          }
+
+          const existingUser = await userModel.findOne({email})
+
+          if(!existingUser) {
+               return res.status(404).json({
+                    message: `User with email ${email} not found`
+               })
+          }
+
+          const isPasswordValid = await
+          bcrypt.compare(password,
+               existingUser.password
+          )
+
+          if(!isPasswordValid) {
+               return res.status(401).json({
+                    message: "Invalid credentials"
+               })
+          }
+
+          const token = await generateToken(existingUser._id)
+
+          res.cookie('genToken', token, {
+               httpOnly: true,
+               secure: process.env.NODE_ENV === "production",
+               sameSite: "lax",
+               maxAge: 1000 * 60 * 60 * 24 * 7
+          })
+
+          return res.status(200).json({
+               message: "Login successful",
+               data: existingUser
+          })
+     } catch (err) {
+          console.error(err)
+     }
 }
+
+ 
+
+
+
+ 
+export const deletSingle = async (req, res) => {
+     const { id } = req.params 
+     try {
+
+          const user = await userModel.findByIdAndDelete(id)
+
+          if(!user) {
+               return res.status(404).json({
+                    message: "User with id: ${id} not found"
+               })
+          }
+
+          res.status(200).json({
+               message: "User deleted successfully",
+               data: user
+          })
+     } catch (error) {
+          if(error instanceof Error) {
+               console.error(err)
+               throw new Error(err.message)
+           }
+ }
+
+}
+
+export const logOut = (req, res) => {
+     try {
+          res.clearCookie('token',{
+               httpOnly: true,
+               secure: process.env.NODE_ENV === "production",
+               sameSite: "lax",
+          });
+          return res.status(200).json({
+               message: "Logged out successfully"
+          });
+     } catch (error) {
+               console.error(err)
+           }
+     }
+
+     
+
 

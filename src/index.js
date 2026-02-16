@@ -2,12 +2,12 @@ import express from 'express'
 import userRoutes from './routes/userRoutes.js'
 import dotenv from 'dotenv'
 dotenv.config()
-import { connectedToDb} from'./config/userRoutes.js'
+import { connectToDb } from'./config/dbConnect.js'
 
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
-await connectedToDb()
+await connectToDb()
 
 // mongoose.connect(process.env.MOMGODB_URI)
 // .then(() => {

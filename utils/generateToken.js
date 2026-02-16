@@ -1,4 +1,6 @@
 import jwt from 'jsonwebtoken'
+import dotenv from 'dotenv'
+dotenv.config()
 
 export const generateToken = async (userId) => {
 
@@ -10,6 +12,4 @@ export const generateToken = async (userId) => {
     return token
 }
 
-MONGODB_URL= mongodb+srv//shiny:Rashidashi@cluster0.gkrzucx.mongodb.net/class
 
-JWT_SECRET="HJHRUHREPOLEPKJRHURH"
