@@ -1,6 +1,6 @@
 
-import { generateToken } from "../../utils/generateToken.js"
-import { userValidation } from "../../validator/userValidator.js"
+import { generateToken } from "../utils/generateToken.js"
+import { userValidation } from "../validator/userValidator.js"
 import { userModel } from "../models/userSchema.js"
 export const getHome = (req, res) => {
      res.send(`<h1>Welcome to my Backend API!</h1>`)
